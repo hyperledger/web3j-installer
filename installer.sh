@@ -163,7 +163,7 @@ check_java_version() {
   echo "Your current java version is ${java_version}"
   is_compatible=$(curl "https://internal.services.web3labs.com/api/epirus/compatibility/${java_version}")
   if [ "$is_compatible" != "True" ]; then
-    echo "The Web3j CLI requires a Java version between 1.8 and 12. Please ensure you have a compatible Java version before installing Web3j for full functionality."
+    echo "The Web3j CLI requires a Java version equals with 17 or higher. Please ensure you have a compatible Java version before installing Web3j for full functionality."
     read -s -n 1 -p "Press any key to continue, or press Ctrl+C to cancel the installation." </dev/tty 
   fi
 }
