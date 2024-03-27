@@ -6,6 +6,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 ### Features
 
 * Files added for repo migration [#8](https://github.com/web3j/web3j-installer/pull/8) (2024-03-27)
+* Changelog Added [#10](https://github.com/web3j/web3j-installer/pull/10) (2024-03-27)
 
 ### Bug Fixes
 
