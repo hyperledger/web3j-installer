@@ -161,13 +161,17 @@ completed() {
 check_java_version() {
   java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
   echo "Your current java version is ${java_version}"
-  # Split the Java version into parts and check if the major version is 17 or higher
-  IFS=. read -ra version_parts <<< "$java_version"
-  if [ "${version_parts[0]}" -ge 17 ]; then
-    echo "Your Java version is compatible with Web3j CLI."
+
+  if [ -n "$java_version" ]; then
+    version_major=$(echo "$java_version" | cut -d'.' -f1)
+    if [ "$version_major" -ge 17 ]; then
+      echo "Your Java version is compatible with Web3j CLI."
+    else
+      echo "The Web3j CLI requires a Java version equal to or higher than 17. Please ensure you have a compatible Java version before installing Web3j for full functionality."
+      read -r -s -n 1 -p "Press any key to continue, or press Ctrl+C to cancel the installation." </dev/tty
+    fi
   else
-    echo "The Web3j CLI requires a Java version equals with 17 or higher. Please ensure you have a compatible Java version before installing Web3j for full functionality."
-    read -r -s -n 1 -p "Press any key to continue, or press Ctrl+C to cancel the installation." </dev/tty
+    echo "Unable to determine Java version. Please ensure Java is installed and accessible in your PATH."
   fi
 }
 
