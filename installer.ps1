@@ -19,9 +19,10 @@ function Fetch-Checksum {
 
 # Function to calculate the current checksum of the script
 function Calculate-Checksum {
-    $scriptPath = $MyInvocation.MyCommand.Path
-    $scriptContent = Get-Content $scriptPath | Where-Object {$_ -notmatch '^\$ChecksumUrl\s*='}
-    $scriptBytes = [System.Text.Encoding]::UTF8.GetBytes($scriptContent -join "`n")
+    $scriptPath = Join-Path $PSScriptRoot "installer.ps1"
+    $scriptContent = Get-Content $scriptPath | ForEach-Object { $_ -replace "`r", "" }
+    $filteredContent = $scriptContent | Where-Object {$_ -notmatch '^\s*\$ChecksumUrl'}
+    $scriptBytes = [System.Text.Encoding]::UTF8.GetBytes($filteredContent -join "`n")
     $sha256 = [System.Security.Cryptography.SHA256]::Create()
     $hashBytes = $sha256.ComputeHash($scriptBytes)
     return -join ($hashBytes | ForEach-Object { $_.ToString("x2") })
