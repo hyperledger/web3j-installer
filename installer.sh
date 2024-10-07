@@ -1,4 +1,32 @@
 #!/bin/sh
+
+# Pre-calculated checksum
+PRE_CALCULATED_CHECKSUM=f16a32eda6dd7b36d0a3f4b559e3b1a9de497ea660f73a3b7eb830175338e624
+
+calculate_checksum() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS: use `shasum`
+    sed '/^PRE_CALCULATED_CHECKSUM=/d' "$0" | shasum -a 256 | awk '{print $1}'
+  else
+    # Linux: use `sha256sum`
+    sed '/^PRE_CALCULATED_CHECKSUM=/d' "$0" | sha256sum | awk '{print $1}'
+  fi
+}
+
+# Verify the integrity of the script
+verify_checksum() {
+  CURRENT_CHECKSUM=$(calculate_checksum)
+  if [ "$CURRENT_CHECKSUM" = "$PRE_CALCULATED_CHECKSUM" ]; then
+    echo "Checksum verification passed."
+  else
+    echo "Checksum verification failed. Script may have been altered."
+    exit 1
+  fi
+}
+
+# Run checksum verification
+verify_checksum
+
 tag_name=$(curl --silent "https://api.github.com/repos/hyperledger/web3j-cli/releases/latest" | jq -r .tag_name)
 web3j_version=$(echo $tag_name | sed 's/v//')
 installed_flag=0
