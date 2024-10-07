@@ -4,23 +4,35 @@ $PSDefaultParameterValues['*:ErrorAction']='Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $ProgressPreference = 'SilentlyContinue'
 
-# Pre-calculated SHA-256 checksum
-$PreCalculatedChecksum = ""
+# URL to the checksum file
+$ChecksumUrl = "https://raw.githubusercontent.com/hyperledger/web3j-installer/main/checksum-windows.txt"
 
-# Function to calculate the current checksum excluding the checksum line
+# Function to fetch the pre-calculated checksum
+function Fetch-Checksum {
+    try {
+        return (Invoke-WebRequest -Uri $ChecksumUrl).Content.Trim()
+    } catch {
+        Write-Output "Error fetching checksum from GitHub."
+        exit 1
+    }
+}
+
+# Function to calculate the current checksum of the script
 function Calculate-Checksum {
     $scriptPath = $MyInvocation.MyCommand.Path
-    $scriptContent = Get-Content $scriptPath | Where-Object {$_ -notmatch '^\$PreCalculatedChecksum\s*='}
-    $hash = [System.Security.Cryptography.SHA256]::Create()
-    $stream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes($scriptContent -join "`n"))
-    $checksumBytes = $hash.ComputeHash($stream)
-    return ($checksumBytes | ForEach-Object { $_.ToString("x2") }) -join ""
+    $scriptContent = Get-Content $scriptPath | Where-Object {$_ -notmatch '^\$ChecksumUrl\s*='}
+    $scriptBytes = [System.Text.Encoding]::UTF8.GetBytes($scriptContent -join "`n")
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    $hashBytes = $sha256.ComputeHash($scriptBytes)
+    return -join ($hashBytes | ForEach-Object { $_.ToString("x2") })
 }
 
 # Verify the integrity of the script
 function Verify-Checksum {
+    $fetchedChecksum = Fetch-Checksum
     $currentChecksum = Calculate-Checksum
-    if ($currentChecksum -eq $PreCalculatedChecksum) {
+
+    if ($currentChecksum -eq $fetchedChecksum) {
         Write-Output "Checksum verification passed."
     } else {
         Write-Output "Checksum verification failed. Script may have been altered."
