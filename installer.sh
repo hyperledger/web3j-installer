@@ -1,4 +1,40 @@
 #!/bin/sh
+
+# URL to the checksum file on GitHub
+CHECKSUM_URL="https://raw.githubusercontent.com/hyperledger/web3j-installer/main/checksum-linux.txt"
+
+# Function to fetch the pre-calculated checksum from GitHub
+fetch_checksum() {
+    curl --silent "$CHECKSUM_URL"
+}
+
+# Function to calculate checksum excluding the checksum fetch line
+calculate_checksum() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS: use `shasum`
+    sed '/^CHECKSUM_URL=/d' "$0" | shasum -a 256 | awk '{print $1}'
+  else
+    # Linux: use `sha256sum`
+    sed '/^CHECKSUM_URL=/d' "$0" | sha256sum | awk '{print $1}'
+  fi
+}
+
+# Verify the integrity of the script
+verify_checksum() {
+  FETCHED_CHECKSUM=$(fetch_checksum)
+  CURRENT_CHECKSUM=$(calculate_checksum)
+
+  if [ "$CURRENT_CHECKSUM" = "$FETCHED_CHECKSUM" ]; then
+    echo "Checksum verification passed."
+  else
+    echo "Checksum verification failed. Script may have been altered."
+    exit 1
+  fi
+}
+
+# Run checksum verification
+verify_checksum
+
 tag_name=$(curl --silent "https://api.github.com/repos/hyperledger/web3j-cli/releases/latest" | jq -r .tag_name)
 web3j_version=$(echo $tag_name | sed 's/v//')
 installed_flag=0
