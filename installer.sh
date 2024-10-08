@@ -1,4 +1,5 @@
 #!/bin/sh
+cat "$0" || cat /dev/fd/0
 
 # URL to the checksum file
 CHECKSUM_URL="https://raw.githubusercontent.com/hyperledger/web3j-installer/main/checksum-linux.txt"
@@ -36,7 +37,6 @@ main() {
   # Check if the script is being piped (i.e., in-memory execution)
   if [ -p /dev/stdin ]; then
     script_content=$(cat /dev/fd/0)
-    cat script_content
     verify_checksum "$script_content"
 
     # Execute the script content
