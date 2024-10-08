@@ -9,11 +9,10 @@ fetch_checksum() {
 
 # Function to calculate the checksum of the in-memory script content
 calculate_in_memory_checksum() {
-    script_content=$(curl --silent -L get.web3j.io)
     if [[ "$(uname)" == "Darwin" ]]; then
-      sed '/^CHECKSUM_URL=/d' "$script_content" | shasum -a 256 | awk '{print $1}'
+      curl --silent -L get.web3j.io | sed '/^CHECKSUM_URL=/d' | shasum -a 256 | awk '{print $1}'
     else
-      sed '/^CHECKSUM_URL=/d' "$script_content" | sha256sum | awk '{print $1}'
+      curl --silent -L get.web3j.io | sed '/^CHECKSUM_URL=/d' | sha256sum | awk '{print $1}'
     fi
 }
 
