@@ -6,3 +6,6 @@ cat /dev/fd/0
 
 # The actual script logic below
 echo "Running the rest of the script..."
+cat
+
+echo "test test"
