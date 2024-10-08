@@ -1,6 +1,5 @@
 #!/bin/sh
-
-# URL to the checksum file on GitHub
+# URL to the checksum file
 CHECKSUM_URL="https://raw.githubusercontent.com/hyperledger/web3j-installer/main/checksum-linux.txt"
 
 # Function to fetch the pre-calculated checksum from GitHub
@@ -8,8 +7,14 @@ fetch_checksum() {
     curl --silent "$CHECKSUM_URL"
 }
 
-# Function to calculate checksum excluding the checksum fetch line
-calculate_checksum() {
+# Function to calculate checksum when script is piped (in-memory)
+calculate_in_memory_checksum() {
+    filtered_content=$(sed '/^CHECKSUM_URL=/d')
+    echo "$filtered_content" | sha256sum | awk '{print $1}'
+}
+
+# Function to calculate checksum when script is run from a file
+calculate_file_checksum() {
   if [[ "$(uname)" == "Darwin" ]]; then
     # macOS: use `shasum`
     sed '/^CHECKSUM_URL=/d' "$0" | shasum -a 256 | awk '{print $1}'
@@ -19,10 +24,21 @@ calculate_checksum() {
   fi
 }
 
+is_piped_execution() {
+  [ -p /dev/stdin ]
+}
+
 # Verify the integrity of the script
 verify_checksum() {
   FETCHED_CHECKSUM=$(fetch_checksum)
-  CURRENT_CHECKSUM=$(calculate_checksum)
+
+  if is_piped_execution; then
+    echo "Running in-memory execution"
+    CURRENT_CHECKSUM=$(calculate_in_memory_checksum)
+  else
+    echo "Running from a file"
+    CURRENT_CHECKSUM=$(calculate_file_checksum)
+  fi
 
   if [ "$CURRENT_CHECKSUM" = "$FETCHED_CHECKSUM" ]; then
     echo "Checksum verification passed!"
