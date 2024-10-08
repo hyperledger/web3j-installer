@@ -27,7 +27,7 @@ verify_checksum() {
   if [ "$CURRENT_CHECKSUM" = "$FETCHED_CHECKSUM" ]; then
     echo "Checksum verification passed."
   else
-    echo "Checksum verification failed. Script may have been altered."
+    echo "Script validation failed!"
     exit 1
   fi
 }
