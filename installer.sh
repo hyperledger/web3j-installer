@@ -1,5 +1,4 @@
 #!/bin/sh
-cat
 
 # URL to the checksum file
 CHECKSUM_URL="https://raw.githubusercontent.com/hyperledger/web3j-installer/main/checksum-linux.txt"
