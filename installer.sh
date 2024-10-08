@@ -1,29 +1,26 @@
 #!/bin/sh
+
 # URL to the checksum file
 CHECKSUM_URL="https://raw.githubusercontent.com/hyperledger/web3j-installer/main/checksum-linux.txt"
 
-# Function to fetch the pre-calculated checksum from GitHub
 fetch_checksum() {
     curl --silent "$CHECKSUM_URL"
 }
 
-# Function to calculate checksum when script is piped (in-memory)
+# Function to calculate the checksum of the in-memory script content
 calculate_in_memory_checksum() {
-    filtered_content=$(sed '/^CHECKSUM_URL=/d')
     if [[ "$(uname)" == "Darwin" ]]; then
-      echo "$filtered_content" | shasum -a 256 | awk '{print $1}'
+      curl --silent -L get.web3j.io | sed '/^CHECKSUM_URL=/d' | shasum -a 256 | awk '{print $1}'
     else
-      echo "$filtered_content" | sha256sum | awk '{print $1}'
+      curl --silent -L get.web3j.io | sed '/^CHECKSUM_URL=/d' | sha256sum | awk '{print $1}'
     fi
 }
 
-# Function to calculate checksum when script is run from a file
+# Function to calculate the checksum of the script file
 calculate_file_checksum() {
   if [[ "$(uname)" == "Darwin" ]]; then
-    # macOS: use `shasum`
     sed '/^CHECKSUM_URL=/d' "$0" | shasum -a 256 | awk '{print $1}'
   else
-    # Linux: use `sha256sum`
     sed '/^CHECKSUM_URL=/d' "$0" | sha256sum | awk '{print $1}'
   fi
 }
@@ -203,14 +200,14 @@ completed() {
   cd "$HOME/.web3j"
   ln -sf "web3j-cli-shadow-$web3j_version/bin/web3j" web3j
   printf '\n'
-  printf "$GREEN" 
+  printf "$GREEN"
   echo "Web3j was successfully installed."
   echo "To use web3j in your current shell run:"
   echo "source \$HOME/.web3j/source.sh"
   echo "When you open a new shell this will be performed automatically."
   echo "To see what Web3j's CLI can do you can check the documentation bellow."
   echo "https://docs.web3j.io/latest/command_line_tools/"
-  printf "$RESET" 
+  printf "$RESET"
   exit 0
 }
 
@@ -241,7 +238,7 @@ main() {
   else
     install_web3j
     source_web3j
-    completed    
+    completed
   fi
 }
 
