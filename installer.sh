@@ -7,42 +7,47 @@ fetch_checksum() {
     curl --silent "$CHECKSUM_URL"
 }
 
-# Function to calculate the checksum
-calculate_checksum() {
-    filtered_content=$(echo "$1" | sed '/^CHECKSUM_URL=/d')
+# Function to calculate the checksum of the in-memory script content
+calculate_in_memory_checksum() {
+    script_content=$(curl --silent -L get.web3j.io)
     if [[ "$(uname)" == "Darwin" ]]; then
-        echo "$filtered_content" | shasum -a 256 | awk '{print $1}'
+      sed '/^CHECKSUM_URL=/d' "$script_content" | shasum -a 256 | awk '{print $1}'
     else
-        echo "$filtered_content" | sha256sum | awk '{print $1}'
+      sed '/^CHECKSUM_URL=/d' "$script_content" | sha256sum | awk '{print $1}'
     fi
 }
 
-# Function to get the script content (either in-memory or from the file)
-get_script_content() {
-    if is_piped_execution; then
-        curl --silent -L "get.web3j.io"
-    else
-        cat "$0"
-    fi
+# Function to calculate the checksum of the script file
+calculate_file_checksum() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed '/^CHECKSUM_URL=/d' "$0" | shasum -a 256 | awk '{print $1}'
+  else
+    sed '/^CHECKSUM_URL=/d' "$0" | sha256sum | awk '{print $1}'
+  fi
 }
 
-# Check if the script is being executed via pipe
 is_piped_execution() {
-    [ -p /dev/stdin ]
+  [ -p /dev/stdin ]
 }
 
 # Verify the integrity of the script
 verify_checksum() {
-    FETCHED_CHECKSUM=$(fetch_checksum)
-    SCRIPT_CONTENT=$(get_script_content)
-    CURRENT_CHECKSUM=$(calculate_checksum "$SCRIPT_CONTENT")
+  FETCHED_CHECKSUM=$(fetch_checksum)
 
-    if [ "$CURRENT_CHECKSUM" = "$FETCHED_CHECKSUM" ]; then
-        echo "Checksum verification passed!"
-    else
-        echo "Script verification failed!"
-        exit 1
-    fi
+  if is_piped_execution; then
+    echo "Running in-memory execution"
+    CURRENT_CHECKSUM=$(calculate_in_memory_checksum)
+  else
+    echo "Running from a file"
+    CURRENT_CHECKSUM=$(calculate_file_checksum)
+  fi
+
+  if [ "$CURRENT_CHECKSUM" = "$FETCHED_CHECKSUM" ]; then
+    echo "Checksum verification passed!"
+  else
+    echo "Script verification failed!"
+    exit 1
+  fi
 }
 
 # Run checksum verification
