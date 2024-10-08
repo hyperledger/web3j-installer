@@ -10,7 +10,11 @@ fetch_checksum() {
 # Function to calculate checksum when script is piped (in-memory)
 calculate_in_memory_checksum() {
     filtered_content=$(sed '/^CHECKSUM_URL=/d')
-    echo "$filtered_content" | sha256sum | awk '{print $1}'
+    if [[ "$(uname)" == "Darwin" ]]; then
+      echo "$filtered_content" | shasum -a 256 | awk '{print $1}'
+    else
+      echo "$filtered_content" | sha256sum | awk '{print $1}'
+    fi
 }
 
 # Function to calculate checksum when script is run from a file
