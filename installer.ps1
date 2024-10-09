@@ -5,8 +5,8 @@ $PSDefaultParameterValues['*:ErrorAction']='Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 # URL to the checksum file
-$ChecksumUrl = "https://raw.githubusercontent.com/hyperledger/web3j-installer/windowsChecksumVerification/checksum-windows.txt"
-$ScriptUrl = "https://raw.githubusercontent.com/hyperledger/web3j-installer/windowsChecksumVerification/installer.ps1"
+$ChecksumUrl = "https://raw.githubusercontent.com/hyperledger/web3j-installer/main/checksum-windows.txt"
+$ScriptUrl = "https://raw.githubusercontent.com/hyperledger/web3j-installer/main/installer.ps1"
 
 # Function to fetch the pre-calculated checksum
 function Fetch-Checksum {
@@ -21,11 +21,11 @@ function Fetch-Checksum {
 # Function to get the script content (handle both file and in-memory execution)
 function Get-ScriptContent {
     if ($PSScriptRoot) {
-        # Running from a file, use Get-Content
+        # Running from a file
         $scriptPath = Join-Path $PSScriptRoot "installer.ps1"
         return Get-Content $scriptPath | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' } | Out-String
     } else {
-        # Running from memory, fetch the script from the URL
+        # Running from memory
         return (Invoke-WebRequest -Uri $ScriptUrl).Content -split "`n" | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' } | Out-String
     }
 }
@@ -43,12 +43,11 @@ function Calculate-Checksum {
 function Verify-Checksum {
     $fetchedChecksum = Fetch-Checksum
     $currentChecksum = Calculate-Checksum
-    Write-Output $fetchedChecksum
-    Write-Output $currentChecksum
+
     if ($currentChecksum -eq $fetchedChecksum) {
-        Write-Output "Checksum verification passed."
+        Write-Output "Script checksum verification passed."
     } else {
-        Write-Output "Checksum verification failed. Script may have been altered."
+        Write-Output "Script checksum verification failed."
         exit 1
     }
 }
