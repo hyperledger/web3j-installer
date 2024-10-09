@@ -26,7 +26,7 @@ function Get-ScriptContent {
         return Get-Content $scriptPath | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' } | Out-String
     } else {
         # Running from memory, fetch the script from the URL
-        return (Invoke-WebRequest -Uri $ScriptUrl).Content | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' }
+        return (Invoke-WebRequest -Uri $ScriptUrl).Content -split "`n" | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' }
     }
 }
 
