@@ -1,1 +1,0 @@
-Get-Content installer.ps1 | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' } | Out-String | % { [System.Text.Encoding]::UTF8.GetBytes($_) } | % { (New-Object Security.Cryptography.SHA256Managed).ComputeHash($_) } | ForEach-Object { $_ | ForEach-Object { $_.ToString("x2") } -join '' }

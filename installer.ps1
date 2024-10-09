@@ -6,6 +6,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 # URL to the checksum file
 $ChecksumUrl = "https://raw.githubusercontent.com/hyperledger/web3j-installer/windowsChecksumVerification/checksum-windows.txt"
+$ScriptUrl = "https://raw.githubusercontent.com/hyperledger/web3j-installer/windowsChecksumVerification/installer.ps1"
 
 # Function to fetch the pre-calculated checksum
 function Fetch-Checksum {
@@ -17,10 +18,21 @@ function Fetch-Checksum {
     }
 }
 
+# Function to get the script content (handle both file and in-memory execution)
+function Get-ScriptContent {
+    if ($PSScriptRoot) {
+        # Running from a file, use Get-Content
+        $scriptPath = Join-Path $PSScriptRoot "installer.ps1"
+        return Get-Content $scriptPath | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' } | Out-String
+    } else {
+        # Running from memory, fetch the script from the URL
+        return (Invoke-WebRequest -Uri $ScriptUrl).Content | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' }
+    }
+}
+
 # Function to calculate the current checksum of the script
 function Calculate-Checksum {
-    $scriptPath = Join-Path $PSScriptRoot "installer.ps1"
-    $scriptContent = Get-Content $scriptPath | ForEach-Object { $_ -replace "`r", "" } | Where-Object { $_ -notmatch '^[\s]*\$ChecksumUrl' } | Out-String
+    $scriptContent = Get-ScriptContent
     $scriptContent = $scriptContent.Trim()
     $scriptBytes = [System.Text.Encoding]::UTF8.GetBytes($scriptContent)
     $hash = (New-Object Security.Cryptography.SHA256Managed).ComputeHash($scriptBytes)
