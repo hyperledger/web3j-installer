@@ -31,7 +31,8 @@ function Calculate-Checksum {
 function Verify-Checksum {
     $fetchedChecksum = Fetch-Checksum
     $currentChecksum = Calculate-Checksum
-
+    Write-Output $currentChecksum
+    Write-Output $fetchedChecksum
     if ($currentChecksum -eq $fetchedChecksum) {
         Write-Output "Checksum verification passed."
     } else {
